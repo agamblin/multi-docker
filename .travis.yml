@@ -1,0 +1,21 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t agamblin/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run agamblin/react-test yarn test -- --coverage
+
+after_success:
+  - docker build -t agamblin/multi-client ./client
+  - docker build -t agamblin/multi-server ./server
+  - docker build -t agamblin/multi-nginx ./nginx
+  - docker build -t agamblin/multi-worker ./worker
+  # takes images and push them to docker-hub
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push agamblin/multi-client
+  - docker push agamblin/multi-server
+  - docker push agamblin/multi-nginx
+  - docker push agamblin/multi-worker
